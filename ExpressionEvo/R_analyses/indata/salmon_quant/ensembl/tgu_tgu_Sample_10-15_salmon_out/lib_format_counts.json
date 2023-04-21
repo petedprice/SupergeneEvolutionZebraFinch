@@ -1,0 +1,22 @@
+{
+    "read_files": "[ tgu_Sample_10-15_forward_paired.fastq.gz, tgu_Sample_10-15_reverse_paired.fastq.gz]",
+    "expected_format": "ISR",
+    "compatible_fragment_ratio": 1.0,
+    "num_compatible_fragments": 17948823,
+    "num_assigned_fragments": 17948823,
+    "num_frags_with_concordant_consistent_mappings": 17370548,
+    "num_frags_with_inconsistent_or_orphan_mappings": 590221,
+    "strand_mapping_bias": 0.0000314315264196947,
+    "MSF": 0,
+    "OSF": 0,
+    "ISF": 546,
+    "MSR": 0,
+    "OSR": 0,
+    "ISR": 17370548,
+    "SF": 268511,
+    "SR": 321164,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

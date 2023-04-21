@@ -1,0 +1,12 @@
+{
+    "salmon_version": "0.14.1",
+    "index": "salmon_index",
+    "libType": "A",
+    "mates1": "tgu_tgu_Sample_5-9_forward_paired.fastq.gz",
+    "mates2": "tgu_tgu_Sample_5-9_reverse_paired.fastq.gz",
+    "validateMappings": [],
+    "output": "tgu_Sample_5-9_salmon_out",
+    "gcBias": [],
+    "seqBias": [],
+    "auxDir": "aux_info"
+}
