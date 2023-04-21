@@ -1,0 +1,62 @@
+Apr-19 12:27:25.033 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf -resume
+Apr-19 12:27:25.402 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 21.04.3
+Apr-19 12:27:25.460 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [nasty_euler] - revision: 8328967e94
+Apr-19 12:27:25.480 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/bop20pp/software/supergene_wogtf/nextflow/nextflow.config
+Apr-19 12:27:25.481 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/bop20pp/software/supergene_wogtf/nextflow/nextflow.config
+Apr-19 12:27:25.520 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-19 12:27:26.411 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; plugins-dir=/home/bop20pp/.nextflow/plugins
+Apr-19 12:27:26.412 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+Apr-19 12:27:26.414 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins local root: .nextflow/plr/empty
+Apr-19 12:27:26.422 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+Apr-19 12:27:26.423 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+Apr-19 12:27:26.426 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.4.1 in 'deployment' mode
+Apr-19 12:27:26.434 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+Apr-19 12:27:26.476 [main] DEBUG nextflow.Session - Session uuid: 442411a1-7b5b-4072-91a6-1969fd163b96
+Apr-19 12:27:26.476 [main] DEBUG nextflow.Session - Run name: nasty_euler
+Apr-19 12:27:26.476 [main] DEBUG nextflow.Session - Executor pool size: 2
+Apr-19 12:27:26.491 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 21.04.3 build 5560
+  Created: 21-07-2021 15:09 UTC (16:09 BST)
+  System: Linux 3.10.0-1160.88.1.el7.x86_64
+  Runtime: Groovy 3.0.7 on Java HotSpot(TM) 64-Bit Server VM 1.8.0_151-b12
+  Encoding: UTF-8 (UTF-8)
+  Process: 89721@sharc-node157.shef.ac.uk [172.30.65.6]
+  CPUs: 1 - Mem: 376.3 GB (158.7 GB) - Swap: 16 GB (16 GB)
+Apr-19 12:27:26.528 [main] DEBUG nextflow.Session - Work-dir: /home/bop20pp/software/supergene_wogtf/nextflow/work [nfs]
+Apr-19 12:27:26.571 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+Apr-19 12:27:26.581 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Apr-19 12:27:26.746 [main] DEBUG nextflow.Session - Session start invoked
+Apr-19 12:27:27.707 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-19 12:27:27.714 [main] DEBUG nextflow.Session - Workflow process names [dsl1]: trim, allignment_hisat2, RG_add, snp_calling_gvcf, mark_duplicates, index_hisat2, SplitNCigarReads
+Apr-19 12:27:27.715 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `reads` -- Initialise it to a default value eg. `params.reads = some_value`
+Apr-19 12:27:27.757 [PathVisitor-1] DEBUG nextflow.file.PathVisitor - files for syntax: glob; folder: null/; pattern: *{1,2}.fastq.gz; options: [:]
+Apr-19 12:27:27.772 [PathVisitor-1] DEBUG nextflow.file.PathVisitor - No such file: null/ -- Skipping visit
+Apr-19 12:27:27.828 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `ref` -- Initialise it to a default value eg. `params.ref = some_value`
+Apr-19 12:27:27.836 [main] DEBUG nextflow.Session - Session aborted -- Cause: Argument of `file` function cannot be null
+Apr-19 12:27:27.845 [main] ERROR nextflow.cli.Launcher - Argument of `file` function cannot be null
+java.lang.IllegalArgumentException: Argument of `file` function cannot be null
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at org.codehaus.groovy.reflection.CachedConstructor.invoke(CachedConstructor.java:72)
+	at org.codehaus.groovy.reflection.CachedConstructor.doConstructorInvoke(CachedConstructor.java:59)
+	at org.codehaus.groovy.runtime.callsite.ConstructorSite$ConstructorSiteNoUnwrap.callConstructor(ConstructorSite.java:84)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallConstructor(CallSiteArray.java:59)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:263)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:277)
+	at nextflow.Nextflow.file(Nextflow.groovy:146)
+	at nextflow.Nextflow.file(Nextflow.groovy)
+	at nextflow.Nextflow$file.callStatic(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallStatic(CallSiteArray.java:55)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callStatic(AbstractCallSite.java:217)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callStatic(AbstractCallSite.java:231)
+	at Script_d07795ab.runScript(Script_d07795ab:2)
+	at nextflow.script.BaseScript.runDsl1(BaseScript.groovy:164)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:200)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:221)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:212)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:120)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:302)
+	at nextflow.cli.Launcher.run(Launcher.groovy:475)
+	at nextflow.cli.Launcher.main(Launcher.groovy:657)

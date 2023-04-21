@@ -1,0 +1,7 @@
+name: my-env
+channels:
+  - bioconda
+  - defaults
+dependencies:
+  - salmon
+  - trimmomatic
