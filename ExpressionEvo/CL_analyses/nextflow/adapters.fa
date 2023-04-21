@@ -1,0 +1,12 @@
+>Illumina_multiplexing_adapter_1
+GATCGGAAGAGCACACGTCT
+>Illumina_multiplexing_adapter_2
+ACACTCTTTCCCTACACGACGCTCTTCCGATCT 
+>Illumina_multiplexing_adapter_1_rc
+AGACGTGTGCTCTTCCGATC
+>Illumina_multiplexing_adapter_2_rc
+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+>ZF_adapter
+CTGTCTCTTATACACATCT
+>ZF_adapter_rc
+AGATGTGTATAAGAGACAG
