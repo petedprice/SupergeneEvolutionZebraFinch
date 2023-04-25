@@ -85,6 +85,8 @@ whole_data = list.files(path = data_path, full.names = TRUE) %>%
   left_join(et$table, ("name" = "name"))
 whole_data$sample <- str_split(whole_data$bam, "_", simplify = TRUE)[,5]
 
+
+
 for (ct in contigs){
   print(ct)
   for (s in names(males)){
@@ -178,7 +180,7 @@ codes <- str_split(sample_info$code, "_", simplify = TRUE)[,3]
 save_ASE$genotype <- NA
 save_ASE[save_ASE$sample %in% codes[sample_info$genotype == "AB"],]$genotype <- "AB"
 save_ASE[save_ASE$sample %in% codes[sample_info$genotype == "AA"],]$genotype <- "AA"
-#write.table(save_ASE, "outdata/ASE_DGE_data_males.csv")
+write.table(save_ASE, "outdata/ASE_DGE_data_males.csv")
 
 
 
