@@ -42,7 +42,7 @@ txi <- tximport(files, type = 'salmon', tx2gene = tx2gene, ignoreTxVersion = TRU
 sg_temp <- unique(txdf$GENEID[txdf$TXCHROM == chrs$V7[chrs$V3 == "Z"]])
 ag_temp <- unique(txdf$GENEID[txdf$TXCHROM != chrs$V7[chrs$V3 == "Z"]])
 inv_temp <- filter(coords_genes, TXCHROM == chrs$V7[chrs$V3 == "Z"]) %>% 
-  filter((start < 6.5e6 | end < 6.5e6) | (start > 7.01e7| end > 7.01e7))
+  filter((start < 6.5e5 | end < 6.5e5) | (start > 7.01e7| end > 7.01e7))
 
 autosome_genes <- intersect(ag_temp, rownames(txi$counts))
 tip_genes <- intersect(inv_temp$GENEID, rownames(txi$counts)) %>% unlist()
@@ -90,6 +90,9 @@ MB <- rownames(set)[which(set$fdr < 0.05 & set$logFC < -1)]
 FB <- rownames(set)[which(set$fdr < 0.05 & set$logFC > 1)]
 salmon_DE_data[MB,3] <- "Male_Bias" 
 salmon_DE_data[FB,3] <- "Female_Bias" 
+
+
+
 
 
 #AB vs AA
@@ -140,6 +143,16 @@ ABAA_summary$comp <- "ABvsAA"
 ABAset <-ABAet$table[sex_genes,]
 ABAaet <-ABAet$table[autosome_genes,]
 
+chisq_table <- ABAA_summary %>% 
+  group_by(Chromosome) %>% 
+  summarise(DEG = sum(n[Bias != "Unbias"]), 
+            UNBIAS = sum(n[Bias == "Unbias"]),
+            total = total[1], 
+            pntg = sum(pntg[Bias != "Unbias"]))
+
+chisq_result <- chisq.test(chisq_table[c(1,3),c(2:3)])
+chisq_result$expected
+chisq_result$observed
 
 salmon_DE_data[,c(4,5)] <- ABAset[,c(1,4)]
 AB_B <- rownames(ABAset)[which(ABAset$fdr < 0.05 & ABAset$logFC < -1)]
@@ -206,7 +219,16 @@ AB_summary$total[AB_summary$Chromosome == "aut"] <-
   sum(AB_summary$n[AB_summary$Chromosome == "aut"])
 AB_summary$pntg <- (AB_summary$n/AB_summary$total) * 100
 AB_summary$comp <- "AvsB"
+chisq_table <- AB_summary %>% 
+  group_by(Chromosome) %>% 
+  summarise(DEG = sum(n[Bias != "Unbias"]), 
+            UNBIAS = sum(n[Bias == "Unbias"]),
+            total = total[1], 
+            pntg = sum(pntg[Bias != "Unbias"]))
 
+chisq_result <- chisq.test(chisq_table[c(1,3),c(2:3)])
+chisq_result$expected
+chisq_result$observed
 
 ABset <-ABet$table[sex_genes,]
 
