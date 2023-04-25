@@ -86,8 +86,6 @@ whole_data = list.files(path = data_path, full.names = TRUE) %>%
 whole_data$sample <- str_split(whole_data$bam, "_", simplify = TRUE)[,5]
 
 
-ASE_analysis <- function(x)
-
 
 for (ct in contigs){
   print(ct)
@@ -106,14 +104,14 @@ for (ct in contigs){
     cov8$binom_p = apply(cov8[,c("aCount","bCount")], 1, function(x) binom.test(x[1],x[1]+x[2],p=0.5)$p.value)
     cov8$binom_q = p.adjust(cov8$binom_p, method = "fdr")
     cov8$ASE_bias <- "UNBIAS"
-    cov8$ASE_bias[cov8$binom_p < 0.05 & abs(cov8$log2_aFC) >= 1.22] <- "BIAS"
+    cov8$ASE_bias[cov8$binom_q < 0.05 & abs(cov8$log2_aFC) >= 1.22] <- "BIAS"
     if (s == names(males)[1] & ct == contigs[1]){
       save_ASE <- cov8
     } else {
       save_ASE <- rbind(save_ASE, cov8)
     }
-    focal_genes[[ct]][[s]] <- filter(cov8, binom_p < 0.05 & abs(log2_aFC) >= 1.22 & contig == ct)$name
-    other[[ct]][[s]] <- filter(cov8, binom_p >= 0.05 & contig == ct)$name
+    focal_genes[[ct]][[s]] <- filter(cov8, binom_q < 0.05 & abs(log2_aFC) >= 1.22 & contig == ct)$name
+    other[[ct]][[s]] <- filter(cov8, binom_q >= 0.05 & contig == ct)$name
     
     
     
@@ -125,11 +123,11 @@ for (ct in contigs){
     for (lf in 1:ncol(lf_table)){
       cst <- data.frame(Contig = c(ct, ct), Focal = c(NA,NA), Others = c(NA,NA), lfc = c(NA,NA), 
                         pvalue = c(NA, NA), rZ = c(NA, NA), rA = c(NA, NA), sig = c(NA, NA))
-      cst[1,2] <- nrow(filter(cov8, binom_p <= 0.05 & abs(log2_aFC) >= lf_table[1,lf] &
+      cst[1,2] <- nrow(filter(cov8, binom_q <= 0.05 & abs(log2_aFC) >= lf_table[1,lf] &
                                 abs(log2_aFC) <= lf_table[2,lf] &
                                 contig == ct))
       cst[2,2] <- nrow(filter(cov8, contig == ct)) - cst[1,2]
-      cst[1,3] <- nrow(filter(cov8, binom_p < 0.05 & abs(log2_aFC) >= lf_table[1,lf] &
+      cst[1,3] <- nrow(filter(cov8, binom_q < 0.05 & abs(log2_aFC) >= lf_table[1,lf] &
                                 abs(log2_aFC) <= lf_table[2,lf] & 
                                 contig != ct))
       cst[2,3] <- nrow(filter(cov8, contig != ct))- cst[1,3]
@@ -182,7 +180,7 @@ codes <- str_split(sample_info$code, "_", simplify = TRUE)[,3]
 save_ASE$genotype <- NA
 save_ASE[save_ASE$sample %in% codes[sample_info$genotype == "AB"],]$genotype <- "AB"
 save_ASE[save_ASE$sample %in% codes[sample_info$genotype == "AA"],]$genotype <- "AA"
-#write.table(save_ASE, "outdata/ASE_DGE_data_males.csv")
+write.table(save_ASE, "outdata/ASE_DGE_data_males.csv")
 
 
 
