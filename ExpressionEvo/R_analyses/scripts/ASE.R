@@ -105,11 +105,15 @@ for (ct in contigs){
     cov8$binom_q = p.adjust(cov8$binom_p, method = "fdr")
     cov8$ASE_bias <- "UNBIAS"
     cov8$ASE_bias[cov8$binom_q < 0.05 & abs(cov8$log2_aFC) >= 1.22] <- "BIAS"
+    if (ct == "NC_044241.2"){
+      cov8 <- filter(cov8, (contig == ct & (stop < 6.5e6 | start > 70.1e6) == T) == F)
+    }
     if (s == names(males)[1] & ct == contigs[1]){
       save_ASE <- cov8
     } else {
       save_ASE <- rbind(save_ASE, cov8)
     }
+   
     focal_genes[[ct]][[s]] <- filter(cov8, binom_q < 0.05 & abs(log2_aFC) >= 1.22 & contig == ct)$name
     other[[ct]][[s]] <- filter(cov8, binom_q >= 0.05 & contig == ct)$name
     

@@ -22,6 +22,8 @@ sample_info <- read.table("outdata/project_data_gen.csv", sep = ',', header = T)
 
 #READING IN GENE COORDINATES
 txdb_coords <- makeTxDbFromGFF("indata/genome_files/GCF_003957565.2_bTaeGut1.4.pri_genomic.gff.gz")
+
+
 k <- keys(txdb_coords, keytype = "GENEID")
 chrs <- read.table('indata/genome_files/GCF_003957565.2_bTaeGut1.4.pri_assembly_report.txt', sep = '\t')[,c(3,7)]
 chrs <- chrs[which(chrs$V3 != "na" & chrs$V3 != "MT"),]
@@ -38,11 +40,11 @@ tx2gene$TXNAME <- str_split(paste("rna-", tx2gene$TXNAME, sep = ""), "[.]", simp
 txi <- tximport(files, type = 'salmon', tx2gene = tx2gene, ignoreTxVersion = TRUE, 
                 ignoreAfterBar = TRUE,
                 countsFromAbundance = "no")
-
+save(file = "outdata/txi_allsamples.RData", txi)
 sg_temp <- unique(txdf$GENEID[txdf$TXCHROM == chrs$V7[chrs$V3 == "Z"]])
 ag_temp <- unique(txdf$GENEID[txdf$TXCHROM != chrs$V7[chrs$V3 == "Z"]])
 inv_temp <- filter(coords_genes, TXCHROM == chrs$V7[chrs$V3 == "Z"]) %>% 
-  filter((start < 6.5e5 | end < 6.5e5) | (start > 7.01e7| end > 7.01e7))
+  filter((start < 6.5e6 | end < 6.5e6) | (start > 7.01e7| end > 7.01e7))
 
 autosome_genes <- intersect(ag_temp, rownames(txi$counts))
 tip_genes <- intersect(inv_temp$GENEID, rownames(txi$counts)) %>% unlist()
@@ -219,7 +221,7 @@ AB_summary$total[AB_summary$Chromosome == "aut"] <-
   sum(AB_summary$n[AB_summary$Chromosome == "aut"])
 AB_summary$pntg <- (AB_summary$n/AB_summary$total) * 100
 AB_summary$comp <- "AvsB"
-chisq_table <- AB_summary %>% 
+chisq_table <- ABAA_summary %>% 
   group_by(Chromosome) %>% 
   summarise(DEG = sum(n[Bias != "Unbias"]), 
             UNBIAS = sum(n[Bias == "Unbias"]),
@@ -245,4 +247,5 @@ salmon_DE_data$GENE <- rownames(salmon_DE_data)
 DEG_manuscript_summary <- rbind(AB_summary, ABAA_summary) %>% 
   filter(Chromosome != "Ztip")
 write.table(DEG_manuscript_summary, "outdata/DEG.csv")
-save(file = "outdata/DEG_analyses/ABvsAAet.RData", ABAet)
+save(file = "outdata/DEG_analyses/ABvsAAet.RData",txi, coords_genesZ, ABAet, ABrpkm, ABArpkm, sex_genes, autosome_genes, tip_genes)
+

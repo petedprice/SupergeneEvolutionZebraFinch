@@ -1,0 +1,17 @@
+What I'm trying to see 
+Is there a relationship between Magnitutde of DEG or ASE (either direction so absolute value used)
+and the number synonymous or nonysnonymous (or both) fixed differences. 
+
+1. DEG
+a. Compare the absolute logFC value with the number of diffs (controlled for gene length)
+b. Compare the ratio of nonsyn/syn with absolute logFC value (no need to control)
+
+2. ASE
+a. Compare the absolute Log2FC with the number of diffs (controlled for gene length)
+b. Compare the ratio of nonsyn/syn with absolute logFC value (no need to control)
+
+
+
+JON Meeting Ideas
+look at paper and for ASE use 2 response variables.
+
