@@ -1,19 +1,15 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
-
-install.packages("devtools", lib = '.')
-library(devtools, lib = '.')
-
-devtools::install_github("pievos101/PopGenome", lib = '.')
-library(PopGenome, lib = '.')
-
 args = commandArgs(trailingOnly=TRUE)
-
 vcf=args[1]
 contig=args[2]
 ct_length=as.numeric(args[3])
 sample_info=read.csv(args[4])
 snp_type=args[5]
+package_dir=args[6]
+
+library(tidyverse)
+library(PopGenome, lib = args[6])
+
 
 MAs <- sample_info[sample_info$Karyotype %in% c("AA") & sample_info$Sex == "M",]$run_accession
 MAs2 <- paste0(MAs, ".2")
