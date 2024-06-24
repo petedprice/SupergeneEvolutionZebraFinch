@@ -1,8 +1,14 @@
 process PopGenome {
-    cpus = 16
-    memory = '64 GB'
-    time = '4h'
+
+    maxRetries 8
+    cpus = { 4 * task.attempt }
+    memory = { 32.GB * task.attempt }
+    time = {4.hour * task.attempt }
     label 'R'
+
+
+
+    tag {'PopGenome_' + contig + '_' + bedtype}
 
     publishDir 'PopGenome_Stats', mode: 'copy', overwrite: true, pattern: '*_PopGenome_Stats.csv'
 
@@ -16,7 +22,9 @@ process PopGenome {
     """
     #!/bin/bash
 
-    Rscript ${projectDir}/scripts/PopGenome.R $vcf $contig $ctg_len ${params.sample_info} $bedtype
+    Rscript ${projectDir}/scripts/PopGenome.R $vcf $contig $ctg_len ${params.sample_info} $bedtype ${projectDir}/R_packages
+
+
 
     
     """

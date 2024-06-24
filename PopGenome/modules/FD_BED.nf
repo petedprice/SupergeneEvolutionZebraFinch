@@ -3,6 +3,8 @@ process FD_BED {
     memory = '4 GB'
     time = '4h'
 
+    tag {'select_sites_FourD_' + contig }
+
     input:
     tuple val(vcf), val(contig), val(ctg_len)
 

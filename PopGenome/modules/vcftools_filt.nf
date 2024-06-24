@@ -5,6 +5,8 @@ process vcftools_filt {
 
     label 'vcftools'
 
+    tag {'vcftools_filt_' + contig }
+
     input:
     tuple val(vcf), val(contig), val(ctg_len)
 
@@ -14,6 +16,7 @@ process vcftools_filt {
     script:
     """
     #!/bin/bash
+
     vcftools --gzvcf ${params.vcfs}/$vcf --recode --minDP 5 --minGQ 20 --max-missing 0.5 --stdout | gzip -c > ${contig}_filt.vcf.gz	
 
     """
