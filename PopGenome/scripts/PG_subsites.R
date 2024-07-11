@@ -25,13 +25,9 @@ As <- c(MAs, FAs)[1:length(Bs)]
 ZAs <- c(MAs, MAs2)
 ZBs <- c(FBs, MBs, MBs2)
 
-#READING IN GENOME 
 genome <- readVCF(vcf, numcols=10000, tid=contig, frompos=1, topos=ct_length, gffpath = gff)
-
-#FIRST SLIDING WINDOW TRANSFORM 
 genom_Pi_all <- sliding.window.transform(genome,width=100000,10000, type=2)
 genom_Pi_all <- diversity.stats(genom_Pi_all, keep.site.info = F, pi = T)
-genom_Pi_all <- get.neutrality(genom_Pi_all)
 Pi_all <- as.data.frame(genom_Pi_all@Pi)
 colnames(Pi_all) <- c("Pi_all")
 Pi_all$n.sites_all <- genom_Pi_all@n.sites
