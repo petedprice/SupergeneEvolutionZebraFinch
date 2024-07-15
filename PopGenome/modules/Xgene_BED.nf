@@ -1,7 +1,7 @@
 process Xgene_BED {
     cpus = 4
     memory = '4 GB'
-    time = '32h'
+    time = '8h'
 
     label 'bedops'
 

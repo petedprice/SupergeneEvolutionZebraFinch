@@ -1,12 +1,11 @@
 process PopGenome {
+    errorStrategy 'retry'
 
     maxRetries 8
     cpus = { 4 * task.attempt }
     memory = { 32.GB * task.attempt }
-    time = {4.hour * task.attempt }
+    time = {4.hour } //* task.attempt }
     label 'R'
-
-
 
     tag {'PopGenome_' + contig + '_' + bedtype}
 
@@ -22,9 +21,8 @@ process PopGenome {
     """
     #!/bin/bash
 
-    Rscript ${projectDir}/scripts/PopGenome.R $vcf $contig $ctg_len ${params.sample_info} $bedtype ${projectDir}/R_packages
 
-
+    Rscript ${projectDir}/scripts/PopGenome.R $vcf $contig $ctg_len ${params.sample_info} $bedtype ${projectDir}/R_packages ${params.gff}
 
     
     """

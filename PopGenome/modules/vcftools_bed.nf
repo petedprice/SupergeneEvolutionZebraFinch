@@ -1,9 +1,9 @@
 process vcftools_bed {
 
     maxRetries 4
-    cpus = { 16 * task.attempt }
-    memory = { 256.GB * task.attempt }
-    time = {12.hour}
+    cpus = { 4 * task.attempt }
+    memory = { 16.GB * task.attempt }
+    time = {4.hour}
 
     label 'vcftools'
 
@@ -25,10 +25,14 @@ process vcftools_bed {
     echo \$bedtype
     cat $bed |cut -f 1,3 >> keep_sites.txt
     
-    if [ \$bedtype==xGene ]; then
+    if [ \$bedtype == Xgene ]; then
+	echo "Removing genes from VCF"
     	vcftools --gzvcf ${contig}_filt.vcf.gz --exclude-bed $bed --recode --keep-INFO-all --stdout | bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz
-    else
-    	#zcat ${contig}_filt.vcf.gz | grep -F -f keep_sites.txt | bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz 
+    elif [ \$bedtype == NC ]; then
+	echo "Keeping only non coding regions"
+	vcftools --gzvcf ${contig}_filt.vcf.gz --bed $bed --recode --keep-INFO-all --stdout | bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz
+    else 
+	echo "doing something else, i think keeping a set of snps"
 	vcftools --gzvcf ${contig}_filt.vcf.gz --positions keep_sites.txt --recode --keep-INFO-all --stdout | bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz
     fi
 
