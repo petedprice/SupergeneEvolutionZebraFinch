@@ -2,6 +2,8 @@ Nextflow pipeline for running population genetics statistics
 
 ## Pre workflow to do 
 Filter VCFs using GATK (see manuscript for description) 
+
+
 Generate degeneracy-all-sites.bed using degenotate from https://github.com/harvardinformatics/degenotate to run stats on four-fold (FD) and zero-fold (0D) degenerate sites. 
 
 
