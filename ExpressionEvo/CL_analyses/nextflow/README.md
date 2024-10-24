@@ -1,16 +1,26 @@
-The first script to run is genotype_main.nf
-This will quantify expression for all stated samples in the metadata.csv file. 
+# How to run this pipeline for identification of allele-specific expression 
 
-Pipeline 
-Trim 
+
+## 1. Run genotype_main.nf to create raw unfiltered SNPs
+### Pipeline 
+Trim reads
 Allign etc 
 Haplotypecaller
 Salmon quantification 
 
-Variants from this pipeline are not filtered for quality, depth etc.
+
+## 2. Filter SNPs
+script: ../var_filt/pre_wasp_Variant_filter.sh
+
+## 3. WASP pipeline wasp_main.nf
+### Pipeline 
 
 
-2nd run: WASP
-After genotype_main.nf has been run, run wasp_main.nf
+## 4. Filter variants from wasp pipeline
+script: ../var_file/Variant_filter.sh
+
+
+
+##### DELETE ######
 Before this, you will need to have filtered you genotyped vcfs from the first run, and filtered for depth, quality (using ../var_filt/asp_Variant_filter.sh).
 You will then filter the genotyped vcfs from this run using (../var_file/Variant_filter.sh) before running phaser using the second set of filtered vcfs (../phaser)
