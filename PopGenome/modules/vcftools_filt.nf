@@ -17,9 +17,9 @@ process vcftools_filt {
     """
     #!/bin/bash
 
-    #vcftools --gzvcf ${params.vcfs}/$vcf --recode --minDP 1 --minGQ 20 --max-missing 0.5 --stdout | gzip -c > ${contig}_filt.vcf.gz	
-    vcftools --gzvcf ${params.vcfs}/$vcf --recode --minDP 1 --stdout | gzip -c > ${contig}_filt.vcf.gz
-    #cp ${params.vcfs}/$vcf ${contig}_filt.vcf.gz
+    vcftools --gzvcf ${params.vcfs}/$vcf --recode \
+	--minDP 5 --minGQ 20 --max-missing 0.5 --max-alleles 2 --remove-indels \
+	--stdout | gzip -c > ${contig}_filt.vcf.gz
 
     """
 }

@@ -30,7 +30,7 @@ ZAs <- c(MAs, MAs2, FAs)
 ZBs <- c(FBs, MBs, MBs2)
 
 #READING IN GENOME
-genome <- readVCF(vcf, numcols=10000, tid=contig, frompos=1, topos=ct_length)
+genome <- readVCF(vcf, numcols=10000, tid=contig, frompos=1, topos=ct_length, gffpath=gff)
 genom_all <- genome 
 
 #FIRST SLIDING WINDOW TRANSFORM

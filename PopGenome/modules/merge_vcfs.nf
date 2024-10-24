@@ -28,9 +28,6 @@ process vcftools_bed {
     if [ \$bedtype == Xgene ]; then
 	echo "Removing genes from VCF"
     	vcftools --gzvcf ${contig}_filt.vcf.gz --exclude-bed $bed --recode --keep-INFO-all --stdout |sed 's/\\.:0,0:0/\\.|.:0,0:0/g'| bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz
-    elif [ \$bedtype == NCXG ]; then
-        echo "Removing genes but keeping introns from VCF"
-        vcftools --gzvcf ${contig}_filt.vcf.gz --exclude-bed $bed --recode --keep-INFO-all --stdout |sed 's/\\.:0,0:0/\\.|.:0,0:0/g'| bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz
     elif [ \$bedtype == NC ]; then
 	echo "Keeping only non coding regions"
 	vcftools --gzvcf ${contig}_filt.vcf.gz --bed $bed --recode --keep-INFO-all --stdout |sed 's/\\.:0,0:0/\\.|.:0,0:0/g'| bgzip -c > ${contig}_filt_type\$bedtype.vcf.gz

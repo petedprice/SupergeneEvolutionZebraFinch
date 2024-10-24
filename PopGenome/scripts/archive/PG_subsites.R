@@ -15,67 +15,36 @@ library(PopGenome, lib = args[6])
 MAs <- sample_info[sample_info$Karyotype %in% c("AA") & sample_info$Sex == "M",]$run_accession
 MAs2 <- paste0(MAs, ".2")
 FAs <- sample_info[sample_info$Karyotype %in% c("A") & sample_info$Sex == "F",]$run_accession
-FAs2 <- paste0(FAs, ".2")
 
 MBs <- sample_info[sample_info$Karyotype %in% c("BB", "B") & sample_info$Sex == "M",]$run_accession
 MBs2 <- paste0(MBs, ".2")
 FBs <- sample_info[sample_info$Karyotype %in% c("BB", "B") & sample_info$Sex == "F",]$run_accession
-FBs2 <- paste0(FBs, ".2")
 
-Bs <- c(MBs, FBs)
-As <- c(MAs, FAs)
-
-
-ZAs <- c(MAs, MAs2, FAs)
+Bs <- c(FBs, MBs)
+As <- c(MAs, FAs)[1:length(Bs)]
+ZAs <- c(MAs, MAs2)
 ZBs <- c(FBs, MBs, MBs2)
 
-#READING IN GENOME
-genome <- readVCF(vcf, numcols=10000, tid=contig, frompos=1, topos=ct_length)
-genom_all <- genome 
+genome <- readVCF(vcf, numcols=10000, tid=contig, frompos=1, topos=ct_length, gffpath = gff)
+genom_Pi_all <- sliding.window.transform(genome,width=100000,10000, type=2)
+genom_Pi_all <- diversity.stats(genom_Pi_all, keep.site.info = F, pi = T)
+Pi_all <- as.data.frame(genom_Pi_all@Pi)
+colnames(Pi_all) <- c("Pi_all")
+Pi_all$n.sites_all <- genom_Pi_all@n.sites
+Pi_all$Pi_alls <- Pi_all$Pi_all/Pi_all$n.sites
 
-#FIRST SLIDING WINDOW TRANSFORM
 
 if (contig != "NC_044241.2"){
-
   populations <- list(As, Bs)
-  populations_all <- list(c(As, Bs))
   outgroup <- "LTF"
   genome <- set.populations(genome, populations, diploid = T)
   genome <- set.outgroup(genome,new.outgroup=outgroup,diploid = T)
-  
-  genom_all <- set.outgroup(genome,new.outgroup=outgroup,diploid = T)
-  genom_all <- set.populations(genom_all, populations_all, diploid = T)
-
-  
 } else {
   populations <- list(ZAs, ZBs)
-  populations_all <- list(c(ZAs, ZBs))
-  outgroup <- c("LTF", "LTF.2")
+  outgroup <- c("LTF")
   genome <- set.populations(genome, populations, diploid = F)
   genome <- set.outgroup(genome,new.outgroup=outgroup,diploid = F)
-
-  genom_all <- set.outgroup(genom_all,new.outgroup=outgroup,diploid = F)
-  genom_all <- set.populations(genom_all, populations_all, diploid = F)
 }
-
-## All samples pooled ##
-genom_all <- sliding.window.transform(genom_all,width=100000,10000, type=2)
-genom_all <- diversity.stats(genom_all, keep.site.info = F, pi = T)
-genom_all <- neutrality.stats(genom_all, FAST = TRUE)
-
-neut_all <- get.neutrality(genom_all)[[1]][,c("Tajima.D", "Fay.Wu.H", "Zeng.E")]  %>% 
-  as.data.frame()
-
-Pi_all <- as.data.frame(genom_all@Pi)
-colnames(Pi_all) <- c("Pi_all")
-Pi_all$n.sites_all <- genom_all@n.sites
-Pi_all$Pi_alls <- Pi_all$Pi_all/Pi_all$n.sites
-
-Pi_neut_all <- cbind(Pi_all, neut_all)
-
-############################
-
-######## A AND B COMPARISONS 
 
 genome <- sliding.window.transform(genome,width=100000,10000, type=2)
 
@@ -96,7 +65,7 @@ Pi$pos <- position
 Pi$Ahaps_pis <- Pi$Ahaps_pi/Pi$n.sites
 Pi$Bhaps_pis <- Pi$Bhaps_pi/Pi$n.sites
 
-all.stats2 <- cbind(all.stats1, Pi[,c(-4)], Pi_neut_all)
+all.stats2 <- cbind(all.stats1, Pi[,c(-4)], Pi_all)
 
 #Neutrality stats
 genome <- neutrality.stats(genome, FAST=TRUE)
@@ -118,3 +87,4 @@ all.stats4$region <- rownames(all.stats4)
 
 write.csv(all.stats4, paste0(snp_type, "_", contig, "_PopGenome_Stats.csv"),
           quote = F, row.names = F)
+

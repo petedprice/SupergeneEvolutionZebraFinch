@@ -1,4 +1,4 @@
-process PopGenome {
+process PopGenome_vcf {
     errorStrategy 'retry'
 
     maxRetries 8
@@ -23,7 +23,7 @@ process PopGenome {
 
     echo 'rerunning again but i think this is fine now'
 
-    Rscript ${projectDir}/scripts/PopGenome.R $vcf $contig $ctg_len ${params.sample_info} $bedtype ${projectDir}/R_packages ${params.gff}
+    Rscript ${projectDir}/scripts/PopGenome_vcf.R $vcf $contig $ctg_len ${params.sample_info} $bedtype ${projectDir}/R_packages ${params.gff}
     
     """
 }
