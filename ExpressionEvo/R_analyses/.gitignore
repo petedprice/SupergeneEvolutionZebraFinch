@@ -2,7 +2,14 @@
 .Rhistory
 R_analyses.RProj
 outdata/ASE_DGE_data_males.csv
-plots
+plots/phaser
 .Rproj.user/
 .DS_Store
+./plots
+./outdata
+./indata
+./data
+./PopGenome
 
+plots
+indata

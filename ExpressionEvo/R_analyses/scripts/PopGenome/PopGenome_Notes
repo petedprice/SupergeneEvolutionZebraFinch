@@ -1,0 +1,33 @@
+#What jake had done
+- Filtered variants using GATK but not actually removed them so they are still in the vcf but marked I think 
+
+
+Fixing the VCFs
+
+1. Remove coding regions
+
+2. Filter vcfs to remove low quality and depth SNPs and replace with ./. for missing data
+
+3. Convert to haploid 
+
+4. Convert back to diploid 
+bcftools convert --haploid2diploid
+
+
+### bcftools convert ###
+bcftools convert --hapsample $vcf 
+
+
+### Changing ploidy from diploid to haploid ###
+bcftools +fixploidy --help
+
+
+bcftools +fixploidy  Females.vcf -- -p ploidy.txt -s Fsamples.txt > Fploidy.vcf
+
+bcftools +fixploidy  subset_nocoding.vcf -- -p ploidy.txt -s samples.txt > ploidy.vcf
+ERR1013156
+
+
+To do, 
+
+Write script just about the cleaning data and then have a popgenome script 

@@ -1,0 +1,7 @@
+
+-------------------------------------------------------------------------
+**Error OP4: Outgroup samples must be specified (-u) with a vcf file (-v)
+-------------------------------------------------------------------------
+
+
+Script call: /opt/anaconda3/envs/degen/bin/degenotate.py -a ../indata/genome_files/GCF_003957565.2_bTaeGut1.4.pri_genomic.gff.gz -g ../indata/genome_files/Z_ZF_reheadered.fas -v data/vcfs/Z_filt.vcf.gz -o data/Z_degen_data --overwrite

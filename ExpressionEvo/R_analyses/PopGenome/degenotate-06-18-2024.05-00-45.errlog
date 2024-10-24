@@ -1,0 +1,7 @@
+
+----------------------------------------------------------------------
+**Error CORE1: File/path not found: ../indata//gffs/NC_044241.2.gff.gz
+----------------------------------------------------------------------
+
+
+Script call: /opt/anaconda3/envs/degen/bin/degenotate.py -a ../indata//gffs/NC_044241.2.gff.gz -g ../indata/genome_files/GCF_003957565.2_bTaeGut1.4.pri_genomic.fas -o data

@@ -1,0 +1,7 @@
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+**Error OP10: Output directory already exists: data. Specify new directory name OR set --overwrite to overwrite all files in that directory.
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Script call: /opt/anaconda3/envs/degen/bin/degenotate.py -a ../indata/genome_files/GCF_003957565.2_bTaeGut1.4.pri_genomic.gff.gz -g ../indata/genome_files/GCF_003957565.2_bTaeGut1.4.pri_genomic.fas -o data

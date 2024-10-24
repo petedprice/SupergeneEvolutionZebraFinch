@@ -33,9 +33,24 @@ DNDS$dnds <- (DNDS$D_nonsyn)/(DNDS$D_syn + 1)
 #### DEG #########
 DEG_DNDS <- DNDS%>% 
   merge(ABAet$table[ABAet$table$Chromosome == "Z",], by=0, all = T) %>% 
-  filter(is.na(fdr) == F) 
+  filter(is.na(fdr) == F) %>% 
+  select(-`Row.names`)
 DEG_DNDS$logFC[DEG_DNDS$logFC == 0 ]  <- min(DEG_DNDS$logFC * 0.1)
+
+DEG_DNDSMF <- DNDS %>% 
+  merge(MFet$table[MFet$table$Chromosome == "Z",], by=0, all = T) %>%
+  filter(is.na(fdr) == F) %>%
+  select(-`Row.names`) %>% 
+  dplyr::rename(MFlogFC = logFC, MFfdr = fdr, MFPValue = PValue, MFBias = Bias, MFlogCPM = logCPM)
+DEG_DNDSMF$MFlogFC[DEG_DNDSMF$MFlogFC == 0 ]  <- min(DEG_DNDSMF$MFlogFC * 0.1)
+
+DEG_MM_MF <- merge(DEG_DNDS, DEG_DNDSMF, by = colnames(DEG_DNDS[-c(23,21,20,20,19,18)]))
+                     
+                     
 write.table(DEG_DNDS, "outdata/FINAL_STATS/DEG_DNDS.txt")
+write.table(DEG_MM_MF, "outdata/FINAL_STATS/DEG_DNDSMM_MF.txt")
+
+
 
 
 ######### ASE ###########

@@ -62,7 +62,7 @@ design <- model.matrix(~group)
 inds = sample_info$sample
 y <- DGEList(counts = txi$counts[,inds], genes = txi$length[,inds], group = group)
 y <- calcNormFactors(y)
-temp_rpkm <- rpkm(y, gene.length = y$genes, log = T)
+temp_rpkm <- rpkm(y, gene.length = y$genes, log = F)
 Mrs <- rowSums(temp_rpkm[,sample_info$sample[sample_info$sex == "M"]] >= 2)
 Frs <- rowSums(temp_rpkm[,sample_info$sample[sample_info$sex == "F"]] >= 2)
 
@@ -72,7 +72,7 @@ keep <- Mrm == TRUE | Frm == TRUE
 y <- y[keep,,keep.lib.sizes=FALSE]
 y <- calcNormFactors(y)
 y <- estimateDisp(y, design)
-MFrpkm <- rpkm(y, gene.length = y$genes, log = T)
+MFrpkm <- rpkm(y, gene.length = y$genes, log = F)
 
 et <- exactTest(y, pair = c("M", "F")) #Positive values are Male bias (first in pair stated)
 et$table$fdr <- p.adjust(et$table$PValue, "fdr")
@@ -93,7 +93,7 @@ FB <- rownames(set)[which(set$fdr < 0.05 & set$logFC > 1)]
 salmon_DE_data[MB,3] <- "Male_Bias" 
 salmon_DE_data[FB,3] <- "Female_Bias" 
 
-
+MFet <- et
 
 
 
@@ -103,7 +103,7 @@ design <- model.matrix(~group)
 inds = sample_info$sample[sample_info$sex == "M"]
 y <- DGEList(counts = txi$counts[,inds], genes = txi$length[,inds], group = group)
 y <- calcNormFactors(y)
-temp_rpkm <- rpkm(y, gene.length = y$genes, log = T)
+temp_rpkm <- rpkm(y, gene.length = y$genes, log = F)
 ABrs <- rowSums(temp_rpkm[,sample_info$sample[sample_info$genotype == "AB"]] >= 2)
 AArs <- rowSums(temp_rpkm[,sample_info$sample[sample_info$genotype == "AA"]] >= 2)
 ABrm <- ABrs > 0.5 * length(which(sample_info$genotype == "AB"))
@@ -113,7 +113,7 @@ keep <- ABrm == TRUE | AArm == TRUE
 y <- y[keep,,keep.lib.sizes=FALSE]
 y <- calcNormFactors(y)
 y <- estimateDisp(y, design)
-ABArpkm <- rpkm(y, gene.length = y$genes, log = T)
+ABArpkm <- rpkm(y, gene.length = y$genes, log = F)
 ABAet <- exactTest(y, pair = c("AB", "AA")) 
 ABAet$table$fdr <- p.adjust(ABAet$table$PValue, "fdr")
 ABAet$table$Chromosome <- NA
@@ -152,7 +152,7 @@ chisq_table <- ABAA_summary %>%
             total = total[1], 
             pntg = sum(pntg[Bias != "Unbias"]))
 
-chisq_result <- chisq.test(chisq_table[c(1,3),c(2:3)])
+chisq_result <- chisq.test(chisq_table[c(1,3),c(2:3)], simulate.p.value = TRUE, B = 1000000)
 chisq_result$expected
 chisq_result$observed
 
@@ -186,7 +186,7 @@ design <- model.matrix(~group)
 inds = sample_info$sample[sample_info$sex == "F"]
 y <- DGEList(counts = txi$counts[,inds], genes = txi$length[,inds], group = group)
 y <- calcNormFactors(y)
-temp_rpkm <- rpkm(y, gene.length = y$genes, log = T)
+temp_rpkm <- rpkm(y, gene.length = y$genes, log = F)
 Ars <- rowSums(temp_rpkm[,sample_info$sample[sample_info$genotype == "A"]] >= 2)
 Brs <- rowSums(temp_rpkm[,sample_info$sample[sample_info$genotype == "B"]] >= 2)
 Arm <- Ars > 0.5 * length(which(sample_info$genotype == "A"))
@@ -195,7 +195,7 @@ keep <- Arm == TRUE | Brm == TRUE
 y <- y[keep,,keep.lib.sizes=FALSE]
 y <- calcNormFactors(y)
 y <- estimateDisp(y, design)
-ABrpkm <- rpkm(y, gene.length = y$genes, log = T)
+ABrpkm <- rpkm(y, gene.length = y$genes, log = F)
 
 ABet <- exactTest(y, pair = c("A", "B")) 
 ABet$table$fdr <- p.adjust(ABet$table$PValue, "fdr")
@@ -221,14 +221,14 @@ AB_summary$total[AB_summary$Chromosome == "aut"] <-
   sum(AB_summary$n[AB_summary$Chromosome == "aut"])
 AB_summary$pntg <- (AB_summary$n/AB_summary$total) * 100
 AB_summary$comp <- "AvsB"
-chisq_table <- ABAA_summary %>% 
+chisq_table <- AB_summary %>% 
   group_by(Chromosome) %>% 
   summarise(DEG = sum(n[Bias != "Unbias"]), 
             UNBIAS = sum(n[Bias == "Unbias"]),
             total = total[1], 
             pntg = sum(pntg[Bias != "Unbias"]))
 
-chisq_result <- chisq.test(chisq_table[c(1,3),c(2:3)])
+chisq_result <- chisq.test(chisq_table[c(1,3),c(2:3)], simulate.p.value = TRUE, B = 1000000)
 chisq_result$expected
 chisq_result$observed
 
@@ -247,5 +247,8 @@ salmon_DE_data$GENE <- rownames(salmon_DE_data)
 DEG_manuscript_summary <- rbind(AB_summary, ABAA_summary) %>% 
   filter(Chromosome != "Ztip")
 write.table(DEG_manuscript_summary, "outdata/DEG.csv")
-save(file = "outdata/DEG_analyses/ABvsAAet.RData",txi, coords_genesZ, ABAet, ABrpkm, ABArpkm, sex_genes, autosome_genes, tip_genes)
+save(file = "outdata/DEG_analyses/ABvsAAet.RData",txi, coords_genesZ, ABAet, ABrpkm, ABArpkm, sex_genes, autosome_genes, tip_genes, ABet, MFet)
+
+
+
 

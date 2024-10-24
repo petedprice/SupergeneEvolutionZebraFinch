@@ -28,7 +28,7 @@ inds = sample_info$sample
 
 y <- DGEList(counts = txi$counts[,inds], genes = txi$length[,inds], group = group)
 y <- calcNormFactors(y)
-allrpkm <- rpkm(y, gene.length = y$genes, log = T)
+allrpkm <- rpkm(y, gene.length = y$genes, log = F)
 
 keep <- rep(FALSE, nrow(allrpkm))
 for (s in unique(sample_info$genotype)){
@@ -53,7 +53,7 @@ for (g in colnames(avrpkm)){
   }
 }
 
-gavrpkm <- avrpkm[rownames(avrpkm) %in% sex_genes,] %>% as.data.frame()
+gavrpkm <- avrpkm[rownames(avrpkm) %in% c(sex_genes, tip_genes),] %>% as.data.frame()
 gavrpkm$GENE <- rownames(gavrpkm)
 
 coords_genesZ$mid <- coords_genesZ$start + (coords_genesZ$width/2)
@@ -107,11 +107,11 @@ ol_sw_average <- ol_sw_average[is.na(ol_sw_average$AB_genotypes) == FALSE,]
 tidy_windows <- ol_sw_average %>% 
   pivot_longer(c("B_genotypes", "AB_genotypes", "A_genotypes", "AA_genotypes"), names_to = "genotypes",
                values_to = "rpkm")
-tidy_windows$mid <- (tidy_windows$start + (tidy_windows$end - tidy_windows$start))/1e+06
+tidy_windows$mid <- (tidy_windows$start + (tidy_windows$end - tidy_windows$start)/2)/1e+06
 
 
-Strata_pos_Mb <- Strata_pos
-Strata_pos_Mb[,2:3] <- Strata_pos_Mb[,2:3] /1e+06
+#Strata_pos_Mb <- Strata_pos
+#Strata_pos_Mb[,2:3] <- Strata_pos_Mb[,2:3] /1e+06
 
 ABtopDE <- filter(ABAet$table, Bias == "AB_bias" & Chromosome == "Z")
 ABtopDE$gene <- rownames(ABtopDE)
@@ -140,17 +140,20 @@ tidy_windows$genotypes <- factor(tidy_windows$genotypes,
                                  levels = c("AA (\u2642)", "AB (\u2642)",
                                             "A (\u2640)", "B (\u2640)"))
 
+group.colors <- c("A (\u2640)" = "#49A5D3", "B (\u2640)" = '#EF6B6C', "AA (\u2642)" = '#983D97', "AB (\u2642)" = '#29B053')
+
 pdf("plots/Zexpression.pdf", height = 3, width = 7)
 tidy_windows_plot <- 
-  ggplot(arrange(tidy_windows, genotypes) , aes(x = mid, y = log(rpkm, base = 2), colour = genotypes)) + geom_line() +
+  ggplot(arrange(tidy_windows, genotypes) , aes(x = mid, y = log(rpkm, base = 2), colour = genotypes)) + geom_line() + 
+  theme_classic()  +
   geom_vline(xintercept = c(70.01, 6.5), color = 'black', linetype = 'dotted') + 
-  
-  annotate(xmin = 6.5, xmax = 70.01, ymin = -Inf, ymax = Inf, geom = 'rect', alpha = 0.1) +
-  theme_classic() + xlab("Position (Mb)")  +ylab(bquote(~Log[2]~ '(rpkm)')) +
-  geom_point(data = ABtopDE, col = 'grey45', shape = 'star', size = 0.5) +
-  geom_point(data = AAtopDE, col = 'green4', shape = 'star', size = 0.5) + 
+  annotate(xmin = 6.5, xmax = 70.01, ymin = -Inf, ymax = Inf, geom = 'rect', alpha = 0.2) +
+  xlab("Position (Mb)")  +ylab(bquote(~Log[2]~ '(rpkm)')) +
+  geom_point(data = ABtopDE, col = '#29B053', shape = 'star', size = 0.5) +
+  geom_point(data = AAtopDE, col = '#983D97', shape = 'star', size = 0.5) + 
   scale_colour_manual(values = brewer.pal(4, "Paired")[c(4,8,1,2)]) +
-  labs(colour = "Genotype")
+  labs(colour = "Genotype") + 
+  scale_color_manual(values=group.colors)
 
 #scale_colour_manual(values = brewer.pal(4, "Set1")[c(2,4,3,1)]) +
 

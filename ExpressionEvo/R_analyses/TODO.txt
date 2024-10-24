@@ -1,0 +1,19 @@
+# TO DO 
+(1) Check the Pseudohaploid run on the cluster where I've included all individuals for autosomes and 
+the proper numbers for the X chromosome. Make plots for this and compare to previous equal As and Bs version
+  - This worked so keeping with this method 
+(2)Run the not pseudohaploid run on the cluster, this is where it's normal vcfs but only 
+selecting the first haplotypes for the females on the X
+  - This didn't work very well so not using 
+  
+(3)Check above and plot and compare to (1) and the equal As and Bs version
+
+
+
+
+
+(4) Conclude which to use. Potentially just include subset as a supplementary figure as Jake did 
+  - We will do this 
+  
+
+(5) Check the xGene and NCXG plots 

@@ -1,0 +1,334 @@
+---
+title: "PopGenome"
+author: "PP"
+date: "2024-06-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(PopGenome)
+library(ggplot2)
+library(tidyverse)
+library(rtracklayer)
+library(vcfR)
+```
+
+```{r}
+filter = "YES"
+if (filter == "YES"){
+  vcf <- read.vcfR("data/Singhal_bTG1_4_Z_plusLTF_filtered_snps.vcf.gz")
+  gff <- import.gff("data/NC_044241.2.gff.gz")
+  coding_regions <- gff[gff$type == "CDS"]
+  
+  
+  filter_vcf_func <- function(snps, start, width){
+    end <- start + width-1
+    snps <- as.numeric(snps)
+    rm_positions <- snps[which(snps > start & snps < end)]
+    return(rm_positions)
+  }
+  
+  
+  snps <- vcf@fix[,2] %>% as.numeric()
+  
+  rm_snps <- coding_regions@ranges %>% as.data.frame() %>% 
+    apply(., 1, function(x)(filter_vcf_func(snps, x[1], width = x[3]))) %>% unlist() %>% 
+    unique()
+  
+  rms_indx <- which(snps %in% rm_snps)
+  vcf@gt <- vcf@gt[-rms_indx,]
+  vcf@fix <- vcf@fix[-rms_indx,]
+  
+  write.vcf(vcf, "data/Z_nocoding.vcf.gz")
+}
+```
+
+
+```{bash engine.opts='-l'}
+# This is a bash code chunk
+conda activate vcftools
+vcftools --gzvcf data/Z_nocoding.vcf.gz --recode --out data/Z_nocoding_filt --minDP 5 --minGQ 20 \
+  --max-missing 0.5
+bgzip -f -c data/Z_nocoding_filt.recode.vcf > data/Z_nocoding_filt.recode.vcf.gz
+tabix -p vcf data/Z_nocoding_filt.recode.vcf.gz
+
+vcftools --gzvcf data/Singhal_bTG1_4_Z_plusLTF_filtered_snps.vcf.gz  --recode --out data/Z_filt --minDP 5 --minGQ 20 \
+  --max-missing 0.5
+bgzip -f -c data/Z_filt.recode.vcf > data/Z_filt.recode.vcf.gz
+tabix -p vcf data/Z_filt.recode.vcf.gz
+
+#gunzip data/Z_nocoding.vcf.gz
+#bgzip -f -c data/Z_nocoding.vcf > data/Z_nocoding.vcf.gz
+#tabix -p vcf data/Z_nocoding.vcf.gz
+
+conda deactivate
+```
+
+
+```{bash engine.opts='-l'}
+conda activate GATK 
+#using these 
+# QD < 2.0, FS > 60.0, MQ < 40.0, MQRankSum < -12.5, ReadPosRankSum < -8.0
+#gatk VariantFiltration -V data/Singhal_bTG1_4_Z_plusLTF_filtered_snps.vcf.gz -O data/Z_gatk_filt.vcf.gz \
+#  --filter-expression "QD < 2.0" --filter-name "QD" \
+#  --filter-expression "FS > 60.0" --filter-name "FS" \
+ # --filter-expression "MQ < 40.0" --filter-name "MQ" \
+ # --filter-expression "MQRankSum < -12.5" --filter-name "MQRankSum" \
+ # --filter-expression "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum"
+  
+#Do all the expressions in one go 
+gatk VariantFiltration -V data/Singhal_bTG1_4_Z_plusLTF_filtered_snps.vcf.gz -O data/Z_gatk_filt.vcf.gz \
+  --filter-expression "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0" \
+  --filter-name "BAD"
+
+gatk SelectVariants -V data/Z_gatk_filt.vcf.gz \
+  --set-filtered-gt-to-nocall \
+  -O data/Z_nocall.vcf.gz
+
+#(QD<2.0, FS>60.0 & SOR>4.0, MQ<40.0, MQRankSum<-12.5, ReadPosRankSum < -8.0
+conda deactivate
+```
+
+```{r}
+### SAMPLE INFO ###
+sample_info_ENI <- read.table("data/filereport_read_run_PRJEB10586_tsv.txt", sep = 
+                                '\t', header = T) %>% 
+  select(run_accession, sample_accession, scientific_name)
+
+sample_info_jake <- read.csv("data/jake_sample_info.csv")
+
+sample_info <- sample_info_ENI %>% 
+  merge(sample_info_jake, by.x = 'sample_accession', by.y = 'Sample.Accession') %>% 
+  filter(Karyotype %in% c("A", "AA", "AB", "BB", "B"))
+
+
+MAs <- sample_info[sample_info$Karyotype %in% c("AA") & sample_info$Sex == "M",]$run_accession
+MAs2 <- paste0(MAs, ".2")
+FAs <- sample_info[sample_info$Karyotype %in% c("A") & sample_info$Sex == "F",]$run_accession
+
+MBs <- sample_info[sample_info$Karyotype %in% c("BB", "B") & sample_info$Sex == "M",]$run_accession
+MBs2 <- paste0(MBs, ".2")
+FBs <- sample_info[sample_info$Karyotype %in% c("BB", "B") & sample_info$Sex == "F",]$run_accession
+
+A <- c(MAs, MAs2, FAs)
+B <- c(MBs, MBs2, FBs)
+A_ss <- sample(A, length(B), replace = F)
+```
+
+
+```{r}
+#### pseudohaploiding the vcfs ####
+vcf_whole <- read.vcfR("data/Z_nocoding_filt.recode.vcf.gz")
+
+### GETTING SEX SAMPLES ###
+Females <- intersect(sample_info$run_accession[sample_info$Sex == "F"], colnames(vcf_whole@gt))
+Males <- c(intersect(sample_info$run_accession[sample_info$Sex == "M"], colnames(vcf_whole@gt)), "LTF")
+
+### GETTING GT FUNCTION ###
+get_gt <- function(samp, gt){
+  gs <- str_split(gt[,samp], ":", simplify = T)[,1]
+  df <- data.frame(genotype = gs)
+  colnames(df) <- samp
+  return(df)
+}
+
+### MALE GENOTYPES ###
+just_gt_Males <- lapply(Males, get_gt, gt = vcf_whole@gt) %>% bind_cols() 
+
+### FEMALE GENOTYPES ###
+just_gt_Females <- lapply(Females, get_gt, gt = vcf_whole@gt) %>% bind_cols()
+
+### FUNCTION TO CONVERT DIPLOID MALES TO PSEUDOHAPLOID ###
+hap_the_dip <- function(samp, gt){
+  gs <- str_split(gt[,samp], "/|\\|", simplify = T) %>% 
+    as.data.frame()
+  
+  pseudo_dip <- lapply(gs, function(x)(return(paste0(x, "|", x)))) %>% 
+    bind_cols()
+  
+  colnames(pseudo_dip) <- paste0(samp, "_hap", 1:2)
+  return(pseudo_dip)
+}
+
+### GETTING THE PSEUDOHAPLOID MALE GT MATRIX ###
+pseudo_haploid_males_gts <- lapply(Males, hap_the_dip, gt = just_gt_Males) %>% 
+  bind_cols()
+
+### FUNCTION FOR GETTING PSEUDOHAPLOID FEMALES 
+hap_the_hap <- function(samp, gt){
+  gs <- str_split(gt[,samp], "/|\\|", simplify = T) %>% 
+    as.data.frame()
+  
+  pseudo_dip <- lapply(gs, function(x)(return(paste0(x, "|", x)))) %>% 
+    bind_cols()
+  pseudo_dip[pseudo_dip[,1] != pseudo_dip[,2],] <- ".|."
+  pseudo_dip <- pseudo_dip[,1]
+  colnames(pseudo_dip) <- paste0(samp, "_hapF")
+  return(pseudo_dip)
+}
+
+### GETTING THE PSEUDOHAPLOID FEMALE GT MATRIX ###
+pseudo_haploid_female_gts <- lapply(Females, hap_the_hap, gt = just_gt_Females) %>% 
+  bind_cols()
+
+### MERGING ###
+pseudo_haploid_gts <- cbind(data.frame(FORMAT = rep("GT:AD:DP"))) %>% 
+                              cbind(pseudo_haploid_males_gts, pseudo_haploid_female_gts) %>% 
+  as.matrix()
+pseudo_haploid_gts[pseudo_haploid_gts == "0|0"] <- "0|0:10,0:10"
+pseudo_haploid_gts[pseudo_haploid_gts == "1|1"] <- "1|1:0,10:10"
+pseudo_haploid_gts[pseudo_haploid_gts == ".|."] <- ".|.:0,0:0"
+
+pseudohaploid_vcf <- vcf_whole
+pseudohaploid_vcf@gt <- pseudo_haploid_gts
+
+write.vcf(pseudohaploid_vcf, "data/pseudohaploid_Z.vcf.gz")
+```
+
+```{bash engine.opts='-l'}
+conda activate vcftools 
+gunzip -f data/pseudohaploid_Z.vcf.gz
+bgzip -f -c data/pseudohaploid_Z.vcf > data/pseudohaploid_Z.vcf.gz
+tabix -f -p vcf data/pseudohaploid_Z.vcf.gz
+conda deactivate 
+```
+
+
+```{r}
+#Reading in genome file and running pooled stats
+Chr10_genomes <- c("10_nocoding.vcf.gz", "10_filt.recode.vcf.gz", "10_nocoding_filt.recode.vcf.gz", "Singhal_bTG1_4_Chr10_plusLTF_filtered_snps.vcf.gz")
+ChrZ_genomes <- c("NC_044241.2", "Z_nocoding.vcf.gz", "Z_filt.recode.vcf.gz", "Z_nocoding_filt.recode.vcf.gz", "Singhal_bTG1_4_Z_plusLTF_filtered_snps.vcf.gz")
+tps <- 30527588
+
+for (i in 3:length(ChrZ_genomes)){
+  genome <- readVCF(paste0("data/", ChrZ_genomes[i]), numcols=10000, tid=ChrZ_genomes[1], frompos=1, topos=tps)
+  genome <- sliding.window.transform(genome,width=100000,10000, type=2)
+  
+  ######## Running jakes stat version  ###############
+  populations <- list(c(MAs, FAs)[-1], c(MBs, FBs))
+  outgroup <- "LFT"
+  genome <- set.populations(genome, populations, diploid = T)
+  genome <- set.outgroup(genome,new.outgroup=outgroup,diploid = T)
+  
+  ## Calc stats ##
+  genome <- F_ST.stats(genome, mode="nucleotide")
+  pairwise.FST <- t(genome@nuc.F_ST.pairwise)
+  positions <-seq(1, tps, (tps/nrow(pairwise.FST)))
+                  
+  all.stats_Chr <- bind_cols(positions, pairwise.FST) 
+  colnames(all.stats_Chr) <- c("Pos", "FST")
+  
+  FST_plot <- all.stats_Chr %>% 
+    ggplot(aes(x =Pos, y = FST)) + geom_line()
+  ggsave(paste0("plots/", ChrZ_genomes[i], "_FST_jake.pdf"), FST_plot)
+  
+  genome <- diversity.stats(genome, keep.site.info = F, pi = T)
+  Pi <-  as.data.frame(genome@Pi)
+  colnames(Pi) <- c("A_Pi", "B_Pi")
+  Pi$n.sites <- genome@n.sites
+  Pi$pos <- positions
+  Pi$A_Pis <- Pi$A_Pi/Pi$n.sites
+  Pi$B_Pis <- Pi$B_Pi/Pi$n.sites
+  
+  Pi_plot <- Pi %>% pivot_longer(cols = c(A_Pis, B_Pis), names_to = "pop", values_to = "Pi") %>% 
+    ggplot(aes(x = pos, y =  Pi)) + geom_line() + 
+    facet_wrap(~pop) 
+  ggsave(paste0("plots/", ChrZ_genomes[i], "_Pi_Jake.pdf"), Pi_plot)
+}
+
+```
+
+
+
+```{r}
+##### RUNNING MY PRETEND HAPLOID STATS ####
+all <- c(FAs, MAs, paste0(MAs, ".2"), FBs, MBs, paste0(MBs, ".2"))
+A_haps <- c(FAs, MAs, paste0(MAs, ".2"))
+B_haps <- c(FBs, MBs, paste0(MBs, ".2"))
+Ass_haps <- sample(A_haps, length(B_haps))
+
+
+populations <- list(A_haps, Ass_haps, B_haps, all)
+#populations <- list(c(MAs, paste0(MAs, ".2")), FAs)
+
+outgroup <- c("LFT", "LFT.2")
+
+genome <- set.populations(genome, populations, diploid = F)
+genome <- set.outgroup(genome,new.outgroup=outgroup,diploid = F)
+
+## Calc stats ##
+#genome <- F_ST.stats(genome, mode="nucleotide")
+#pairwise.FST <- t(genome@nuc.F_ST.pairwise)
+#position <- data.frame(position = seq(1, tps, (tps/nrow(pairwise.FST))))
+#all.stats_Chr <- bind_cols(position, pairwise.FST)
+#colnames(all.stats_Chr) <- c("Pos", "FST")
+
+#FST_plot_haploid <- all.stats_Chr %>% 
+#  ggplot(aes(x =Pos, y = FST)) + geom_line()
+#ggsave("plots/FST_haploid.pdf", FST_plot_haploid)
+
+
+genome <- diversity.stats(genome, keep.site.info = F, pi = T)
+Pi <-  as.data.frame(genome@Pi)
+colnames(Pi) <- c("A_Pi", "Ass_Pi", "B_Pi", "all_Pi")
+Pi$n.sites <- genome@n.sites
+Pi$pos <- positions
+Pi$A_Pis <- Pi$A_Pi/Pi$n.sites
+Pi$Ass_Pis <- Pi$Ass_Pi/Pi$n.sites
+Pi$B_Pis <- Pi$B_Pi/Pi$n.sites
+Pi$All_Pis <- Pi$all_Pi/Pi$n.sites
+
+Pi_plot <- Pi %>% pivot_longer(cols = c(A_Pis, Ass_Pis, B_Pis, All_Pis), names_to = "pop", values_to = "Pi") %>% 
+ ggplot(aes(x = pos, y =  Pi)) + geom_line() + 
+  facet_wrap(~pop) 
+ggsave("plots/Z_Pi_hap_equal.pdf", Pi_plot)
+```
+
+
+
+```{r}
+#Reading in genome file and running pooled stats
+tps <- 37539615
+genome_ph <- readVCF("data/pseudohaploid_Z.vcf.gz", numcols=10000, tid="NC_044241.2", frompos=1, topos=tps)
+genome_ph <- sliding.window.transform(genome_ph,width=100000,10000, type=2)
+
+Ahaps <- grep(paste(c(FAs, MAs[1:2]), collapse="|"), colnames(pseudo_haploid_gts), value=T)
+Bhaps <- grep(paste(c(FBs, MBs), collapse="|"), colnames(pseudo_haploid_gts), value=T)
+populations <- list(Ahaps, Bhaps)
+
+#AMhaps <- grep(paste(c(MAs), collapse="|"), colnames(pseudo_haploid_gts), value=T)
+#AFhaps <- grep(paste(c(FAs), collapse="|"), colnames(pseudo_haploid_gts), value=T)
+#populations <- list(AMhaps, AFhaps)
+
+outgroup <- c("LFT_hap1", "LFT_hap2")
+
+genome_ph <- set.populations(genome_ph, populations, diploid = F)
+genome_ph <- set.outgroup(genome_ph,new.outgroup=outgroup,diploid = F)
+
+## Calc stats ##
+genome_ph <- F_ST.stats(genome_ph, mode="nucleotide")
+pairwise.FST <- t(genome_ph@nuc.F_ST.pairwise)
+position <- data.frame(position = seq(1, tps, (tps/nrow(pairwise.FST))))
+#all.stats_Chr <- bind_cols(position, pairwise.FST)
+#colnames(all.stats_Chr) <- c("Pos", "FST")
+
+#FST_plot_haploid <- all.stats_Chr %>% 
+#  ggplot(aes(x =Pos, y = FST)) + geom_line()
+#ggsave("plots/FST_pseudohaploid.pdf", FST_plot_haploid)
+
+genome_ph <- diversity.stats(genome_ph, pi=T, keep.site.info = F)
+Pi <-  as.data.frame(genome_ph@Pi)
+dim(Pi)
+Pi[,3] <- position
+colnames(Pi) <- c("A_Pi", "B_Pi", "pos")
+
+Pi$n.sites <- genome_ph@n.sites
+Pi$A_Pis <- Pi$A_Pi/Pi$n.sites
+Pi$B_Pis <- Pi$B_Pi/Pi$n.sites
+
+Pi %>% pivot_longer(cols = c(A_Pis, B_Pis), names_to = "pop", values_to = "Pi") %>% 
+  ggplot(aes(x = pos, y =  Pi)) + geom_line() + 
+  facet_wrap(~pop)
+```
+

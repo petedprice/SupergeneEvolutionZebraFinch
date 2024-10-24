@@ -55,7 +55,7 @@ y <- DGEList(counts = txi$counts[,inds], genes = txi$length[,inds], group = grou
 y <- calcNormFactors(y)
 y <- estimateDisp(y, design)
 
-rpkm <- rpkm(y, gene.length = y$genes, log = T)
+rpkm <- rpkm(y, gene.length = y$genes, log = F)
 include_genes <- rpkm > 2
 et <- exactTest(y, pair = c("AA", "AB")) #Positive values are Male bias (first in pair stated)
 et$table$fdr <- p.adjust(et$table$PValue, "fdr")
@@ -281,30 +281,30 @@ write.table(ase_tab_homs, "outdata//chisq_tables/homs_ASE_overlap.tsv",
 ase_tab_hets_chimat <- matrix(data = c(tail(ase_tab_hets$ASE, 1), tail(ase_tab_hets$NON, 1),
                                        sum(ase_tab_hets$ASE[1:12]), sum(ase_tab_hets$NON[1:12])), 
                               nrow = 2, byrow = FALSE)
-chisq_man <- chisq.test(ase_tab_hets_chimat, simulate.p.value = TRUE, B = 1000000)
+chisq_manAB <- chisq.test(ase_tab_hets_chimat, simulate.p.value = TRUE, B = 1000000)
 
 ############### FINISHING EDITING SOMWEHRE AROUND HERE!!!!
 
 ZvsA_chisq_overlap <- matrix(nrow =2, ncol = 9, data = c(rep("AB", 2), 
                                                          c("Aut", "Z"), 
-                                                         t(chisq_man$observed)[c(2,1),], 
-                                                         round(t(chisq_man$expected)[c(2,1),]), 
-                                                         rep(chisq_man$p.value, 2), 
-                                                         rep(chisq_man$statistic, 2), 
-                                                         rep(sum(chisq_man$observed), 2))) %>% as.data.frame()
+                                                         t(chisq_manAB$observed)[c(2,1),], 
+                                                         round(t(chisq_manAB$expected)[c(2,1),]), 
+                                                         rep(chisq_manAB$p.value, 2), 
+                                                         rep(chisq_manAB$statistic, 2), 
+                                                         rep(sum(chisq_manAB$observed), 2))) %>% as.data.frame()
 
 
 ase_tab_homs_chimat <- matrix(data = c(tail(ase_tab_homs$ASE, 1), tail(ase_tab_homs$NON, 1),
                                        sum(ase_tab_homs$ASE[1:12]), sum(ase_tab_homs$NON[1:12])), 
                               nrow = 2, byrow = FALSE)
-chisq_man <- chisq.test(ase_tab_homs_chimat, simulate.p.value = TRUE, B = 1000000)
+chisq_manAA <- chisq.test(ase_tab_homs_chimat, simulate.p.value = TRUE, B = 1000000)
 ZvsA_chisq_overlap <- rbind(ZvsA_chisq_overlap, matrix(nrow =2, ncol = 9, data = c(rep("AA", 2), 
                                                                                    c("Aut", "Z"), 
-                                                                                   t(chisq_man$observed)[c(2,1),], 
-                                                                                   round(t(chisq_man$expected)[c(2,1),]), 
-                                                                                   rep(chisq_man$p.value, 2),
-                                                                                   rep(chisq_man$statistic, 2), 
-                                                                                   rep(sum(chisq_man$observed), 2)))) %>% as.data.frame()
+                                                                                   t(chisq_manAA$observed)[c(2,1),], 
+                                                                                   round(t(chisq_manAA$expected)[c(2,1),]), 
+                                                                                   rep(chisq_manAA$p.value, 2),
+                                                                                   rep(chisq_manAA$statistic, 2), 
+                                                                                   rep(sum(chisq_manAA$observed), 2)))) %>% as.data.frame()
 
 colnames(ZvsA_chisq_overlap) <- c("genotype", "Chromosome", "Obs_ASE", "Obs_nASE", "Ex_ASE", "Ex_nASE", "MCMCpvalue", "Chi", "N")
 
@@ -346,4 +346,21 @@ sum_stats <- overlap_ASE_df %>%
             #  n = n(),
             var = var(log2_aFC),
             pos = mean(start))
+
+
+### candidate genes 
+candidates <- c("DMGDH", "FREM1", "ENSTGUG00000021693", "LOC121468358")
+whole_data %>% 
+  filter(name %in% candidates) %>%
+  View()
+
+save_ASE %>% 
+  filter(name %in% candidates) %>%
+  unique() %>% 
+  View()
+
+rpkm['LOC121468358',]
+include_genes[candidates[4],]
+
+
 
