@@ -59,10 +59,10 @@ This section of the pipeline removes mapping bias that may emerge in analyses of
 
 ## 4. Filter variants from wasp pipeline
 script: ./var_file/Variant_filter.sh
-Filter remapped reads for clusters of 5 SNPs in a window of 95 using GATK
-Filter --minGQ 30 --minDP 10 using vcftools 
+1. Filter remapped reads for clusters of 5 SNPs in a window of 95 using GATK
+2. Filter --minGQ 30 --minDP 10 using vcftools 
 
 
-##### DELETE ######
-Before this, you will need to have filtered you genotyped vcfs from the first run, and filtered for depth, quality (using ../var_filt/asp_Variant_filter.sh).
-You will then filter the genotyped vcfs from this run using (../var_file/Variant_filter.sh) before running phaser using the second set of filtered vcfs (../phaser)
+## 5. PHASER
+1. Run phaser.py on new variant set and remapped bams using c1.phaser.sh
+2. Run phaser_gene_ae.py on output from (1)
