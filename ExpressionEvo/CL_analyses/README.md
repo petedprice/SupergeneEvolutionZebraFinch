@@ -64,5 +64,5 @@ script: ./var_file/Variant_filter.sh
 
 
 ## 5. PHASER
-1. Run phaser.py on new variant set and remapped bams using c1.phaser.sh
-2. Run phaser_gene_ae.py on output from (1)
+1. Run phaser.py on new variant set and remapped bams using .phaser/c1.phaser.sh
+2. Run phaser_gene_ae.py on output from (1) using .phaser/c2.phaser_ase.sh
