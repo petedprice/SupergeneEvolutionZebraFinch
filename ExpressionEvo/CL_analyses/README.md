@@ -43,12 +43,17 @@ This section of the pipeline removes mapping bias that may emerge in analyses of
 2. Index reference genome with hisat2. 
 3. Alignment step 1. Standard alignment with hisat2.
 4. Alignment step 2.
-  a. using find_intersecting_snps.py from WASP to find reads with mapping bias
+
+	a. using find_intersecting_snps.py from WASP to find reads with mapping bias
     outputs: bam file of reads that don't overlap SNPs, bamfile with original reads that overlap SNPs and need to be remapped, fastq of reads with alleles flipped to remap (remove mapping bias) 
-  b. remap flipped reads identified by wasp using hisat2
-  c. using filter_remapped_reads.py, filter reads where remapped read maps to new location
-  d. merge non-overalpping bam from (a) and filter bam from (c)
-  e. Remove duplicate reads using WASP/mapping/rmdup_pe.py
+
+	b. remap flipped reads identified by wasp using hisat2
+
+	c. using filter_remapped_reads.py, filter reads where remapped read maps to new location
+
+	d. merge non-overalpping bam from (a) and filter bam from (c)
+
+	e. Remove duplicate reads using WASP/mapping/rmdup_pe.py
 6. GATK sno calling pipeline
 
 
