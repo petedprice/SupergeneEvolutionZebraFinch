@@ -280,6 +280,100 @@ process snp_calling_gvcf {
 
 }
 
+/*
+process genotpye_gvcfs_ASE {
+    cache 'lenient'
+    errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'finish' }
+
+    tag {'genotpye_gvcfs'}
+    publishDir 'genotyped_vcfs', mode: 'copy', overwrite: true, pattern: '*vcf.gz'
+
+    cpus = { 2 * task.attempt }
+    memory = { 8.GB * task.attempt }
+    time = { 4.hour }
+
+    input:
+    tuple val(sid), file("${contig}_${sid}_md_cig.RG.bam"), file("${contig}_${sid}.g.vcf.gz"), val(contig), file('ref.dict')  from snp_gvcf_called1
+    file('ref.fasta') from ref
+    file('ref.fasta.fai') from ref_index
+
+    output:
+    tuple val(sid), val(contig), file("${contig}_${sid}.genotyped.vcf.gz"), file("${contig}_${sid}.genotyped.vcf.gz.tbi") into genotyped1
+
+    script:
+    """
+    #!/bin/bash
+
+    module load apps/python/anaconda3-4.2.0
+    source activate gatk
+    mkdir tmp
+
+    tabix -p vcf ${contig}_${sid}.g.vcf.gz
+
+    gatk GenotypeGVCFs \
+	-R $ref \
+	-V ${contig}_${sid}.g.vcf.gz \
+	-O ${contig}_${sid}.genotyped.vcf.gz
+
+    """
+
+}
+
+
+process filter_vcf_WG_ASE {
+    cache 'lenient'
+    errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'finish' }
+
+
+    tag {'filter_gen'}
+    publishDir 'filtered_genotyped_vcfs', mode: 'copy', overwrite: true, pattern: '*vcf'
+
+    cpus = 2
+    memory = '10 GB'
+    time = '2h'
+
+    input:
+    tuple val(sid), val(contig), file("${contig}_${sid}.genotyped.vcf.gz"), file("${contig}_${sid}.genotyped.vcf.gz.tbi") from genotyped1
+    file('ref.fasta') from ref
+    file('ref.fasta.fai') from ref_index
+    val(GQ) from GQ
+    val(DP) from DP
+
+    
+    output:
+    tuple val(sid), val(contig), file("${contig}_${sid}.genotyped_filtered.recode.vcf") into filtered1
+
+    script:
+    """
+    #!/bin/bash
+
+    source /usr/local/extras/Genomics/.bashrc
+
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /usr/local/community/Genomics/apps/gatk/4.1.0.0/gatk-package-4.1.0.0-local.jar VariantFiltration \
+	-R $ref \
+	-V ${contig}_${sid}.genotyped.vcf.gz \
+        -O tempclus.vcf \
+        -cluster 10 \
+        -window 145
+
+    bcftools view -f PASS tempclus.vcf > tempclus.pass.vcf
+
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true \
+	-Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 \
+	-jar /usr/local/community/Genomics/apps/gatk/4.1.0.0/gatk-package-4.1.0.0-local.jar \
+	SelectVariants \
+	-R $ref \
+        -V tempclus.pass.vcf \
+        --restrict-alleles-to BIALLELIC \
+        --select-type-to-include SNP \
+        -O tempclus.filt.ba.vcf
+
+    vcftools --vcf tempclus.filt.ba.vcf --out ${contig}_${sid}.genotyped_filtered_gq${GQ}_dp${DP} --minGQ $GQ --minDP $DP --recode --recode-INFO-all
+
+    """
+
+}
+
 
 process salmon_index {
    //conda 'bioconda::salmon'
@@ -339,3 +433,4 @@ process salmon_quant {
     """
 
 }
+*/
